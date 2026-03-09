@@ -1,7 +1,7 @@
 <h1 align="center">Hi 👋, I'm Alexander</h1>
 <h3 align="center">Systems administrator who is currently studying computer Science</h3>
 
-- 🌱 I’m currently learning **Java,React and AWS**
+- 🌱 I’m currently learning **Java and Azure**
 
 - 📫 How to reach me **alevlaiva1@gmail.com**
 
