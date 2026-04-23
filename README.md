@@ -62,5 +62,5 @@
 ---
 
 <div align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=alevlaiva1&show_icons=true&theme=dark&hide_border=true&title_color=0078D4&icon_color=0078D4" />
+  <img src="https://github-readme-stats.vercel.app/api?username=alevlaiva&show_icons=true&theme=dark&hide_border=true&title_color=0078D4&icon_color=0078D4" />
 </div>
