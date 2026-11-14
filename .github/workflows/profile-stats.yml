@@ -157,7 +157,7 @@ jobs:
           def arc_path(cx, cy, r, a0, a1):
               x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
               x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
-              large = 1 if (a1 - a0) % (2 * math.pi) > math.pi else 0
+              large = 1 if (a1 - a0) > math.pi else 0
               return f"M{x0:.2f} {y0:.2f}A{r} {r} 0 {large} 1 {x1:.2f} {y1:.2f}"
 
 
@@ -201,8 +201,10 @@ jobs:
                   span = 2 * math.pi * size / shown
                   if span >= 2 * math.pi - 1e-6:
                       body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{PALETTE[i]}" stroke-width="18"/>')
-                  elif span > 0.01:
-                      body.append(f'<path d="{arc_path(cx, cy, r, a + 0.015, a + span - 0.015)}" fill="none" stroke="{PALETTE[i]}" stroke-width="18"/>')
+                  else:
+                      gap = min(0.015, span * 0.2)
+                      if span - 2 * gap > 0.002:
+                          body.append(f'<path d="{arc_path(cx, cy, r, a + gap, a + span - gap)}" fill="none" stroke="{PALETTE[i]}" stroke-width="18"/>')
                   a += span
               return card(W, H, "\n".join(body), "Most used languages")
 
