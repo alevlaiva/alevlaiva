@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="220" viewBox="0 0 1000 220" role="img" aria-label="ALEVLAIVA - Cloud Engineer">
+<defs>
+  <linearGradient id="word" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.35" stop-color="#E0F2FE"/>
+    <stop offset="0.7" stop-color="#7DD3FC"/><stop offset="1" stop-color="#2563EB"/>
+  </linearGradient>
+  <radialGradient id="haze" cx="0.85" cy="0.2" r="0.8">
+    <stop offset="0" stop-color="#0EA5E9" stop-opacity="0.22"/><stop offset="1" stop-color="#0EA5E9" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="haze2" cx="0.05" cy="1" r="0.6">
+    <stop offset="0" stop-color="#4338CA" stop-opacity="0.20"/><stop offset="1" stop-color="#4338CA" stop-opacity="0"/>
+  </radialGradient>
+  <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+    <path d="M28 0H0V28" fill="none" stroke="#38BDF8" stroke-opacity="0.06" stroke-width="1"/>
+  </pattern>
+  <filter id="glow" x="-10%" y="-50%" width="120%" height="200%"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<rect width="1000" height="220" rx="16" fill="#07101F"/>
+<rect width="1000" height="220" rx="16" fill="url(#grid)"/>
+<rect width="1000" height="220" rx="16" fill="url(#haze)"/>
+<rect width="1000" height="220" rx="16" fill="url(#haze2)"/>
+<line x1="700" y1="52" x2="780" y2="92" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="780" y1="92" x2="860" y2="48" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="860" y1="48" x2="930" y2="110" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="780" y1="92" x2="820" y2="160" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="820" y1="160" x2="900" y2="178" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="930" y1="110" x2="900" y2="178" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="820" y1="160" x2="740" y2="150" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><line x1="700" y1="52" x2="740" y2="150" stroke="#38BDF8" stroke-opacity="0.22" stroke-width="1.2"/><circle cx="700" cy="52" r="3" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="3.0s" repeatCount="indefinite"/></circle><circle cx="780" cy="92" r="4" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="3.7s" repeatCount="indefinite"/></circle><circle cx="860" cy="48" r="3" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="4.4s" repeatCount="indefinite"/></circle><circle cx="930" cy="110" r="4" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="5.1s" repeatCount="indefinite"/></circle><circle cx="820" cy="160" r="3" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="5.8s" repeatCount="indefinite"/></circle><circle cx="900" cy="178" r="4" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="6.5s" repeatCount="indefinite"/></circle><circle cx="740" cy="150" r="3" fill="#7DD3FC" opacity="0.55"><animate attributeName="opacity" values="0.25;0.8;0.25" dur="7.2s" repeatCount="indefinite"/></circle>
+<text x="80" y="128" font-family="Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif" font-size="78" font-weight="800" letter-spacing="6" fill="#0EA5E9" opacity="0.35" filter="url(#glow)">ALEVLAIVA</text>
+<text x="80" y="128" font-family="Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif" font-size="78" font-weight="800" letter-spacing="6" fill="url(#word)">ALEVLAIVA</text>
+<rect x="82" y="150" width="56" height="3" rx="1.5" fill="#0EA5E9"/>
+<text x="152" y="156" font-family="Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="4" fill="#8BA3C1">ASPIRING CLOUD ENGINEER</text>
+<rect x="0.5" y="0.5" width="999" height="219" rx="15.5" fill="none" stroke="#1C3150"/>
+</svg>
