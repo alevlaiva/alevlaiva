@@ -14,7 +14,7 @@
 
 I am an aspiring **Cloud Engineer** focused on **AWS** and **Azure**, building hands-on experience in designing, automating and operating cloud infrastructure.
 
-I enjoy turning manual setups into **repeatable, well-documented infrastructure**: running workloads in containers and keeping them secure and observable with tools like Graylog and Grafana.
+I enjoy turning manual setups into **repeatable, well-documented infrastructure**: running workloads in containers and keeping them secure and observable with tools like Grafana, Prometheus and CloudWatch.
 
 Currently open to **junior cloud and infrastructure roles, internships** and collaboration on open-source infrastructure projects.
 
@@ -29,7 +29,7 @@ Currently open to **junior cloud and infrastructure roles, internships** and col
   <th colspan="2" align="center"><sub>CLOUD</sub></th>
   <th colspan="1" align="center"><sub>CONTAINERS</sub></th>
   <th colspan="1" align="center"><sub>SYSTEMS</sub></th>
-  <th colspan="2" align="center"><sub>MONITORING AND LOGGING</sub></th>
+  <th colspan="3" align="center"><sub>MONITORING</sub></th>
 </tr>
 <tr>
   <td align="center" width="105"><picture><source media="(prefers-color-scheme: dark)" srcset="./aws-dark.svg"/><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original.svg" width="42" height="42" alt="AWS"/></picture><br><sub><b>AWS</b></sub></td>
@@ -37,18 +37,16 @@ Currently open to **junior cloud and infrastructure roles, internships** and col
   <td align="center" width="105"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" width="42" height="42" alt="Docker"/><br><sub><b>Docker</b></sub></td>
   <td align="center" width="105"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" width="42" height="42" alt="Linux"/><br><sub><b>Linux</b></sub></td>
   <td align="center" width="105"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/grafana/grafana-original.svg" width="42" height="42" alt="Grafana"/><br><sub><b>Grafana</b></sub></td>
-  <td align="center" width="105"><img src="https://cdn.simpleicons.org/graylog/FF3633" width="42" height="42" alt="Graylog"/><br><sub><b>Graylog</b></sub></td>
+  <td align="center" width="105"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/prometheus/prometheus-original.svg" width="42" height="42" alt="Prometheus"/><br><sub><b>Prometheus</b></sub></td>
+  <td align="center" width="105"><img src="./cloudwatch.svg" width="42" height="42" alt="Amazon CloudWatch"/><br><sub><b>CloudWatch</b></sub></td>
 </tr>
 </table>
 
 <table align="center">
 <tr>
-  <th colspan="2" align="center"><sub>NETWORKING AND SECURITY</sub></th>
   <th colspan="3" align="center"><sub>DATABASES</sub></th>
 </tr>
 <tr>
-  <td align="center" width="105"><img src="https://cdn.simpleicons.org/cisco/1BA0D7" width="42" height="42" alt="Cisco"/><br><sub><b>Cisco</b></sub></td>
-  <td align="center" width="105"><img src="https://cdn.simpleicons.org/fortinet/EE3124" width="42" height="42" alt="FortiGate"/><br><sub><b>FortiGate</b></sub></td>
   <td align="center" width="105"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" width="42" height="42" alt="PostgreSQL"/><br><sub><b>PostgreSQL</b></sub></td>
   <td align="center" width="105"><img src="https://cdn.simpleicons.org/mysql/4479A1" width="42" height="42" alt="MySQL"/><br><sub><b>MySQL</b></sub></td>
   <td align="center" width="105"><img src="https://cdn.simpleicons.org/mariadb/C0765A" width="42" height="42" alt="MariaDB"/><br><sub><b>MariaDB</b></sub></td>
@@ -132,10 +130,32 @@ Keeping passwords and keys in HashiCorp Vault, out of code and config files, and
 Catching leaked secrets and insecure configuration before they reach the cloud with gitleaks, tflint and Trivy, plus hardened SSH, host firewalls and least-privilege containers.
 
 **Monitoring and Alerting**  
-Collecting metrics and health checks for hosts and services, with alerts that flag problems before they affect users.
+Collecting metrics and health checks with Prometheus and Amazon CloudWatch, visualizing them in Grafana dashboards, and setting alerts that flag problems before they affect users.
 
 </td>
 
+</tr>
+</table>
+
+<br>
+
+---
+
+## <img src="./h-repos.svg" alt="Repositories" height="36"/>
+
+<table>
+<tr>
+<td valign="top">
+
+### [Secure AWS Platform](https://github.com/alevlaiva/Secure-AWS-Platform-DevOps) &nbsp;<sub>IN PROGRESS</sub>
+
+**Hardened AWS infrastructure with a DevSecOps pipeline**
+
+A secure AWS environment built entirely from code: a private VPC reached only through a bastion host, hardened Ubuntu servers, containers on segregated Docker networks, secrets kept in HashiCorp Vault with AWS KMS auto-unseal, and a GitHub Actions pipeline that scans, plans and deploys every change using short-lived OIDC credentials, with no stored AWS keys.
+
+`AWS` · `Terraform` · `Ansible` · `Docker` · `Vault` · `GitHub Actions` · `Trivy`
+
+</td>
 </tr>
 </table>
 
