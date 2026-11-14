@@ -70,6 +70,28 @@ Currently open to **junior cloud and infrastructure roles, internships** and col
 
 ---
 
+## <img src="./h-repos.svg" alt="Repositories" height="36"/>
+
+<table>
+<tr>
+<td valign="top">
+
+### [Secure AWS Platform](https://github.com/alevlaiva/Secure-AWS-Platform-DevOps) &nbsp;<sub>IN PROGRESS</sub>
+
+**Hardened AWS infrastructure with a DevSecOps pipeline**
+
+A secure AWS environment built entirely from code: a private VPC reached only through a bastion host, hardened Ubuntu servers, containers on segregated Docker networks, secrets kept in HashiCorp Vault with AWS KMS auto-unseal, and a GitHub Actions pipeline that scans, plans and deploys every change using short-lived OIDC credentials, with no stored AWS keys.
+
+`AWS` · `Terraform` · `Ansible` · `Docker` · `Vault` · `GitHub Actions` · `Trivy`
+
+</td>
+</tr>
+</table>
+
+<br>
+
+---
+
 ## <img src="./h-activity.svg" alt="GitHub Activity" height="36"/>
 
 <p align="center">
@@ -134,28 +156,6 @@ Collecting metrics and health checks with Prometheus and Amazon CloudWatch, visu
 
 </td>
 
-</tr>
-</table>
-
-<br>
-
----
-
-## <img src="./h-repos.svg" alt="Repositories" height="36"/>
-
-<table>
-<tr>
-<td valign="top">
-
-### [Secure AWS Platform](https://github.com/alevlaiva/Secure-AWS-Platform-DevOps) &nbsp;<sub>IN PROGRESS</sub>
-
-**Hardened AWS infrastructure with a DevSecOps pipeline**
-
-A secure AWS environment built entirely from code: a private VPC reached only through a bastion host, hardened Ubuntu servers, containers on segregated Docker networks, secrets kept in HashiCorp Vault with AWS KMS auto-unseal, and a GitHub Actions pipeline that scans, plans and deploys every change using short-lived OIDC credentials, with no stored AWS keys.
-
-`AWS` · `Terraform` · `Ansible` · `Docker` · `Vault` · `GitHub Actions` · `Trivy`
-
-</td>
 </tr>
 </table>
 
