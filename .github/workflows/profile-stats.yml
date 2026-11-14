@@ -1,0 +1,267 @@
+name: Profile stats
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 */12 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile-stats
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Render cards
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          cat > profile_stats.py <<'PYEOF'
+          """Render GitHub profile stat cards (stats, languages, streak) as SVG.
+
+          Usage: python3 profile_stats.py OUT_DIR [--demo]
+          Needs GITHUB_TOKEN in the environment (the Actions token is enough).
+          """
+          import json, math, os, sys, urllib.request
+          from datetime import date, datetime, timedelta, timezone
+
+          USER = os.environ.get("STATS_USER", "alevlaiva")
+          NAME = os.environ.get("STATS_NAME", "Alexander")
+          FONT = "Segoe UI, -apple-system, Helvetica Neue, Arial, sans-serif"
+          BG1, BG2, BORDER = "#07101F", "#0B1A33", "#1C3150"
+          TEXT, MUTED, ACCENT = "#E6EDF3", "#8BA3C1", "#38BDF8"
+          PALETTE = ["#38BDF8", "#E0F2FE", "#2563EB", "#7DD3FC", "#0EA5E9", "#6366F1", "#93C5FD", "#1D4ED8"]
+
+
+          # ------------------------------------------------------------------ data
+          def gql(query, variables):
+              req = urllib.request.Request(
+                  "https://api.github.com/graphql",
+                  data=json.dumps({"query": query, "variables": variables}).encode(),
+                  headers={"Authorization": "bearer " + os.environ["GITHUB_TOKEN"], "Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  out = json.load(r)
+              if out.get("errors"):
+                  raise SystemExit(json.dumps(out["errors"]))
+              return out["data"]
+
+
+          def fetch():
+              base = gql("""query($login:String!){ user(login:$login){
+                createdAt
+                pullRequests{totalCount} issues{totalCount}
+                repositoriesContributedTo(contributionTypes:[COMMIT,PULL_REQUEST,ISSUE,REPOSITORY]){totalCount}
+                repositories(ownerAffiliations:OWNER,isFork:false,first:100){nodes{
+                  stargazerCount
+                  languages(first:10,orderBy:{field:SIZE,direction:DESC}){edges{size node{name}}}}}}}""", {"login": USER})["user"]
+              stars, langs = 0, {}
+              for repo in base["repositories"]["nodes"]:
+                  stars += repo["stargazerCount"]
+                  for e in repo["languages"]["edges"]:
+                      langs[e["node"]["name"]] = langs.get(e["node"]["name"], 0) + e["size"]
+              created = datetime.fromisoformat(base["createdAt"].replace("Z", "+00:00"))
+              now = datetime.now(timezone.utc)
+              commits, days = 0, {}
+              start = created
+              while start < now:
+                  end = min(start + timedelta(days=365), now)
+                  c = gql("""query($login:String!,$from:DateTime!,$to:DateTime!){ user(login:$login){
+                    contributionsCollection(from:$from,to:$to){ totalCommitContributions restrictedContributionsCount
+                      contributionCalendar{ weeks{ contributionDays{ date contributionCount }}}}}}""",
+                          {"login": USER, "from": start.isoformat(), "to": end.isoformat()})["user"]["contributionsCollection"]
+                  commits += c["totalCommitContributions"] + c["restrictedContributionsCount"]
+                  for w in c["contributionCalendar"]["weeks"]:
+                      for d in w["contributionDays"]:
+                          days[d["date"]] = d["contributionCount"]
+                  start = end
+              return {"stars": stars, "commits": commits, "prs": base["pullRequests"]["totalCount"],
+                      "issues": base["issues"]["totalCount"],
+                      "contributed": base["repositoriesContributedTo"]["totalCount"],
+                      "langs": langs, "days": days}
+
+
+          def streaks(days):
+              ds = sorted((date.fromisoformat(k), v) for k, v in days.items())
+              if not ds:
+                  return 0, None, None, 0, None, None, None
+              total = sum(v for _, v in ds)
+              first = next((d for d, v in ds if v > 0), ds[0][0])
+              longest, lstart, lend, run, rstart = 0, None, None, 0, None
+              for d, v in ds:
+                  if v > 0:
+                      if run == 0:
+                          rstart = d
+                      run += 1
+                      if run > longest:
+                          longest, lstart, lend = run, rstart, d
+                  else:
+                      run = 0
+              lookup = dict(ds)
+              today = ds[-1][0]
+              cur, d = 0, today
+              if lookup.get(d, 0) == 0:
+                  d -= timedelta(days=1)
+              cstart = cend = None
+              while lookup.get(d, 0) > 0:
+                  cur += 1
+                  cend = cend or d
+                  cstart = d
+                  d -= timedelta(days=1)
+              return total, first, today, cur, (cstart, cend), longest, (lstart, lend)
+
+
+          # ------------------------------------------------------------------ svg helpers
+          def card(w, h, body, label):
+              return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="{label}">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{BG2}"/><stop offset="1" stop-color="{BG1}"/></linearGradient>
+            <linearGradient id="arc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7DD3FC"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+            <radialGradient id="glow" cx="0.9" cy="0" r="0.9"><stop offset="0" stop-color="#0EA5E9" stop-opacity="0.18"/><stop offset="1" stop-color="#0EA5E9" stop-opacity="0"/></radialGradient>
+          </defs>
+          <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="16" fill="url(#bg)" stroke="{BORDER}"/>
+          <rect x="0.5" y="0.5" width="{w-1}" height="{h-1}" rx="16" fill="url(#glow)"/>
+          {body}
+          </svg>'''
+
+
+          def fmt(n):
+              return f"{n:,}"
+
+
+          def short(d):
+              return d.strftime("%b %-d") if d else ""
+
+
+          GH = ("M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94"
+                "-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07"
+                "-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 "
+                "1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54"
+                ".73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z")
+
+          ICONS = {  # 16x16 outline icons drawn as simple shapes
+              "star": '<path d="M8 1.5l1.9 4 4.3.5-3.2 2.9.9 4.3L8 11l-3.9 2.2.9-4.3L1.8 6l4.3-.5z" fill="none" stroke="{c}" stroke-width="1.4" stroke-linejoin="round"/>',
+              "commit": '<circle cx="8" cy="8" r="3" fill="none" stroke="{c}" stroke-width="1.4"/><path d="M0 8h5M11 8h5" stroke="{c}" stroke-width="1.4"/>',
+              "pr": '<circle cx="4" cy="3.5" r="1.8" fill="none" stroke="{c}" stroke-width="1.4"/><circle cx="4" cy="12.5" r="1.8" fill="none" stroke="{c}" stroke-width="1.4"/><circle cx="12" cy="12.5" r="1.8" fill="none" stroke="{c}" stroke-width="1.4"/><path d="M4 5.3v5.4M12 10.7V6.5a2 2 0 00-2-2H7.5" fill="none" stroke="{c}" stroke-width="1.4"/>',
+              "issue": '<circle cx="8" cy="8" r="6.3" fill="none" stroke="{c}" stroke-width="1.4"/><circle cx="8" cy="8" r="1.3" fill="{c}"/>',
+              "repo": '<path d="M3 2.5A1.5 1.5 0 014.5 1H13v11H4.5A1.5 1.5 0 003 13.5zM3 13.5A1.5 1.5 0 004.5 15H13v-3M6 15v-2" fill="none" stroke="{c}" stroke-width="1.4" stroke-linejoin="round"/>',
+          }
+
+
+          def arc_path(cx, cy, r, a0, a1):
+              x0, y0 = cx + r * math.cos(a0), cy + r * math.sin(a0)
+              x1, y1 = cx + r * math.cos(a1), cy + r * math.sin(a1)
+              large = 1 if (a1 - a0) % (2 * math.pi) > math.pi else 0
+              return f"M{x0:.2f} {y0:.2f}A{r} {r} 0 {large} 1 {x1:.2f} {y1:.2f}"
+
+
+          # ------------------------------------------------------------------ cards
+          def stats_card(s):
+              W, H = 540, 250
+              rows = [("star", "Total Stars Earned:", s["stars"]), ("commit", "Total Commits:", s["commits"]),
+                      ("pr", "Total PRs:", s["prs"]), ("issue", "Total Issues:", s["issues"]),
+                      ("repo", "Contributed To:", s["contributed"])]
+              body = [f'<text x="32" y="50" font-family="{FONT}" font-size="19" font-weight="700" fill="{TEXT}">{NAME}\'s GitHub Stats</text>']
+              for i, (ic, label, val) in enumerate(rows):
+                  y = 92 + i * 34
+                  body.append(f'<g transform="translate(32 {y - 12})">{ICONS[ic].format(c=ACCENT)}</g>')
+                  body.append(f'<text x="60" y="{y}" font-family="{FONT}" font-size="14.5" font-weight="600" fill="{TEXT}">{label}</text>')
+                  body.append(f'<text x="262" y="{y}" font-family="{FONT}" font-size="14.5" font-weight="700" fill="{TEXT}">{fmt(val)}</text>')
+              cx, cy, r = 430, 132, 58
+              body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{BORDER}" stroke-width="9"/>')
+              body.append(f'<path d="{arc_path(cx, cy, r, -math.pi / 2, -math.pi / 2 + 1.25)}" fill="none" stroke="url(#arc)" stroke-width="9" stroke-linecap="round"/>')
+              body.append(f'<g transform="translate({cx - 24} {cy - 24}) scale(3)"><path d="{GH}" fill="{TEXT}"/></g>')
+              return card(W, H, "\n".join(body), f"{NAME}'s GitHub stats")
+
+
+          def stack_card(langs):
+              W, H = 440, 250
+              total = sum(langs.values()) or 1
+              top = sorted(langs.items(), key=lambda kv: -kv[1])[:8]
+              body = [f'<text x="32" y="50" font-family="{FONT}" font-size="19" font-weight="700" fill="{TEXT}">Most Used Stack</text>']
+              if not top:
+                  body.append(f'<text x="32" y="100" font-family="{FONT}" font-size="14" fill="{MUTED}">No public code yet</text>')
+              for i, (name, size) in enumerate(top):
+                  y = 86 + i * 20
+                  pct = 100 * size / total
+                  body.append(f'<circle cx="38" cy="{y - 4.5}" r="5" fill="{PALETTE[i]}"/>')
+                  body.append(f'<text x="52" y="{y}" font-family="{FONT}" font-size="13.5" font-weight="700" fill="{TEXT}">{name} '
+                              f'<tspan font-weight="500" fill="{ACCENT}">{pct:.1f}%</tspan></text>')
+              cx, cy, r = 340, 140, 56
+              body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{BORDER}" stroke-width="18"/>')
+              a = -math.pi / 2
+              shown = sum(sz for _, sz in top) or 1
+              for i, (name, size) in enumerate(top):
+                  span = 2 * math.pi * size / shown
+                  if span >= 2 * math.pi - 1e-6:
+                      body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{PALETTE[i]}" stroke-width="18"/>')
+                  elif span > 0.01:
+                      body.append(f'<path d="{arc_path(cx, cy, r, a + 0.015, a + span - 0.015)}" fill="none" stroke="{PALETTE[i]}" stroke-width="18"/>')
+                  a += span
+              return card(W, H, "\n".join(body), "Most used languages")
+
+
+          def streak_card(days):
+              W, H = 660, 215
+              total, first, today, cur, (cs, ce), longest, (ls, le) = streaks(days)
+              cols = [160, 330, 500]
+              body = [f'<line x1="245" y1="45" x2="245" y2="170" stroke="{BORDER}"/>',
+                      f'<line x1="415" y1="45" x2="415" y2="170" stroke="{BORDER}"/>']
+              body.append(f'<text x="{cols[0]}" y="98" text-anchor="middle" font-family="{FONT}" font-size="34" font-weight="800" fill="{TEXT}">{fmt(total)}</text>')
+              body.append(f'<text x="{cols[0]}" y="132" text-anchor="middle" font-family="{FONT}" font-size="14.5" font-weight="700" fill="{TEXT}">Total Contributions</text>')
+              body.append(f'<text x="{cols[0]}" y="156" text-anchor="middle" font-family="{FONT}" font-size="12" fill="{MUTED}">{short(first)}, {first.year if first else ""} - Present</text>')
+              cx, cy, r = cols[1], 92, 44
+              body.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="url(#arc)" stroke-width="6"/>')
+              body.append(f'<circle cx="{cx}" cy="{cy - r}" r="13" fill="{BG2}"/>')
+              body.append(f'<path d="M{cx} {cy - r - 10}c4 5 7 8 7 12a7 7 0 01-14 0c0-3 2-5 3-7 1 2 2 3 3 3 0-3 1-5 1-8z" fill="url(#arc)"/>')
+              body.append(f'<text x="{cx}" y="{cy + 11}" text-anchor="middle" font-family="{FONT}" font-size="30" font-weight="800" fill="{TEXT}">{cur}</text>')
+              body.append(f'<text x="{cx}" y="{cy + r + 30}" text-anchor="middle" font-family="{FONT}" font-size="14.5" font-weight="700" fill="{ACCENT}">Current Streak</text>')
+              span = (f"{short(cs)} - {short(ce)}" if cs and cs != ce else short(ce)) if cur else short(today)
+              body.append(f'<text x="{cx}" y="{cy + r + 52}" text-anchor="middle" font-family="{FONT}" font-size="12" fill="{MUTED}">{span}</text>')
+              body.append(f'<text x="{cols[2]}" y="98" text-anchor="middle" font-family="{FONT}" font-size="34" font-weight="800" fill="{TEXT}">{longest}</text>')
+              body.append(f'<text x="{cols[2]}" y="132" text-anchor="middle" font-family="{FONT}" font-size="14.5" font-weight="700" fill="{TEXT}">Longest Streak</text>')
+              body.append(f'<text x="{cols[2]}" y="156" text-anchor="middle" font-family="{FONT}" font-size="12" fill="{MUTED}">{short(ls)} - {short(le)}</text>')
+              return card(W, H, "\n".join(body), "GitHub contribution streak")
+
+
+          def main():
+              out = sys.argv[1]
+              os.makedirs(out, exist_ok=True)
+              if "--demo" in sys.argv:
+                  import random
+                  random.seed(3)
+                  d0 = date(2026, 2, 26)
+                  days = {(d0 + timedelta(days=i)).isoformat(): random.choice([0, 0, 1, 2, 4]) for i in range(262)}
+                  s = {"stars": 1, "commits": 214, "prs": 3, "issues": 0, "contributed": 6, "days": days,
+                       "langs": {"Python": 52000, "HCL": 21000, "Shell": 6000, "Dockerfile": 1500, "YAML": 900}}
+              else:
+                  s = fetch()
+              for name, svg in (("github-stats.svg", stats_card(s)), ("stack.svg", stack_card(s["langs"])),
+                                ("streak.svg", streak_card(s["days"]))):
+                  with open(os.path.join(out, name), "w") as f:
+                      f.write(svg)
+              print("rendered cards for", USER)
+
+
+          if __name__ == "__main__":
+              main()
+          PYEOF
+          python3 profile_stats.py dist
+
+      - name: Publish to the output branch
+        working-directory: dist
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init -q -b output
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add github-stats.svg stack.svg streak.svg
+          git commit -q -m "Update profile stats"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" output
